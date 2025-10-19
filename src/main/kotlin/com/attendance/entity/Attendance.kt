@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 )
 data class Attendance(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,6 +25,7 @@ data class Attendance(
     val subject: Subject,
 
     @Column(nullable = false)
+    @Temporal(TemporalType.DATE)
     val date: LocalDate,
 
     @Column(nullable = false)
@@ -35,9 +36,11 @@ data class Attendance(
     var status: AttendanceStatus,
 
     @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
     var updatedAt: LocalDateTime = LocalDateTime.now()
 )
 

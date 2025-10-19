@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 @Table(name = "timeslots")
 data class Timeslot(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -20,6 +20,7 @@ data class Timeslot(
     val subject: Subject,
 
     @Column(nullable = false)
+    @Temporal(TemporalType.DATE)
     val date: LocalDate,
 
     @Column(nullable = false)
@@ -29,8 +30,10 @@ data class Timeslot(
     val roomName: String? = null,
 
     @Column(name = "created_at")
+    @Temporal(TemporalType.TIMESTAMP)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
     @Column(name = "updated_at")
+    @Temporal(TemporalType.TIMESTAMP)
     var updatedAt: LocalDateTime = LocalDateTime.now()
 )

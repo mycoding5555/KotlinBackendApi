@@ -30,10 +30,9 @@ class AttendanceService(
         val attendance = if (existingAttendance.isPresent) {
             // Update existing attendance
             val existing = existingAttendance.get()
-            existing.copy(
-                status = request.status,
-                updatedAt = LocalDateTime.now()
-            )
+            existing.status = request.status
+            existing.updatedAt = LocalDateTime.now()
+            existing
         } else {
             // Create new attendance record
             Attendance(

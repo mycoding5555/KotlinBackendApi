@@ -51,4 +51,7 @@ interface AttendanceRepository : JpaRepository<Attendance, Long> {
         @Param("subjectId") subjectId: Long,
         @Param("status") status: AttendanceStatus
     ): Long
+
+    @Query("SELECT COALESCE(MAX(a.id), 0) FROM Attendance a")
+    fun findMaxId(): Long?
 }
