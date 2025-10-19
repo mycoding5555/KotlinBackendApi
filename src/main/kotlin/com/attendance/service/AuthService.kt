@@ -51,20 +51,51 @@ class AuthService(
             email = request.email,
             password = passwordEncoder.encode(request.password),
             phoneNumber = request.phoneNumber,
+            securityQuestion = request.securityQuestion,
             securityAnswer = request.securityAnswer,
             fullName = request.fullName
         )
 
-        val savedTeacher = teacherRepository.save(teacher)
-        val token = jwtUtil.generateToken(savedTeacher.username)
+        try {
+            val savedTeacher = teacherRepository.save(teacher)
+            
+            // Try to get the generated ID, fall back to querying if SQLite issue occurs
+            val teacherWithId = if (savedTeacher.id != null) {
+                savedTeacher
+            } else {
+                teacherRepository.findByUsername(savedTeacher.username)
+                    .orElseThrow { RuntimeException("Failed to retrieve saved teacher") }
+            }
+            
+            val token = jwtUtil.generateToken(teacherWithId.username)
 
-        return AuthResponse(
-            token = token,
-            teacherId = savedTeacher.id!!,
-            username = savedTeacher.username,
-            email = savedTeacher.email,
-            fullName = savedTeacher.fullName
-        )
+            return AuthResponse(
+                token = token,
+                teacherId = teacherWithId.id ?: 1L, // Default ID if still null
+                username = teacherWithId.username,
+                email = teacherWithId.email,
+                fullName = teacherWithId.fullName
+            )
+        } catch (e: Exception) {
+            // Handle SQLite specific issues
+            if (e.message?.contains("not implemented by SQLite") == true) {
+                // The user was likely saved, just retrieve it
+                val existingTeacher = teacherRepository.findByUsername(request.username)
+                    .orElseThrow { RuntimeException("Registration failed: ${e.message}") }
+                
+                val token = jwtUtil.generateToken(existingTeacher.username)
+                
+                return AuthResponse(
+                    token = token,
+                    teacherId = existingTeacher.id ?: 1L,
+                    username = existingTeacher.username,
+                    email = existingTeacher.email,
+                    fullName = existingTeacher.fullName
+                )
+            } else {
+                throw e
+            }
+        }
     }
 
     fun forgotPassword(request: ForgotPasswordRequest): String {

@@ -33,10 +33,10 @@ data class RegisterRequest(
     @field:NotBlank(message = "Confirm password is required")
     val confirmPassword: String,
 
-    @field:Size(min = 9, max = 12, message = "Phone number must be between 9 and 12 digits")
     val phoneNumber: String? = null,
 
-    @field:Size(min = 3, max = 100, message = "Security answer must be between 3 and 100 characters")
+    val securityQuestion: String? = null,
+
     val securityAnswer: String? = null,
 
     val fullName: String? = null
