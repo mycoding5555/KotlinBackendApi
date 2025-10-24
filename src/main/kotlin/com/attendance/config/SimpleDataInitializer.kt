@@ -203,6 +203,15 @@ class SimpleDataInitializer {
                 println("- $timeslotCount timeslots")
                 println("- $attendanceCount attendance records")
                 
+                // Update the sequence table to ensure new registrations work
+                try {
+                    val maxId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM teachers", Int::class.java) ?: 0
+                    jdbcTemplate.update("UPDATE teachers_seq SET next_val = ?", maxId + 1)
+                    println("Updated teachers sequence to start from ${maxId + 1}")
+                } catch (seqException: Exception) {
+                    println("Note: Could not update sequence table (this is normal on first run): ${seqException.message}")
+                }
+                
                 println("\nSample login credentials:")
                 println("Username: john_doe, Password: password123 (Math & Physics)")
                 println("Username: jane_smith, Password: password123 (CS)")

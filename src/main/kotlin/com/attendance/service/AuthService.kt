@@ -56,46 +56,22 @@ class AuthService(
             fullName = request.fullName
         )
 
-        try {
-            val savedTeacher = teacherRepository.save(teacher)
-            
-            // Try to get the generated ID, fall back to querying if SQLite issue occurs
-            val teacherWithId = if (savedTeacher.id != null) {
-                savedTeacher
-            } else {
-                teacherRepository.findByUsername(savedTeacher.username)
-                    .orElseThrow { RuntimeException("Failed to retrieve saved teacher") }
-            }
-            
-            val token = jwtUtil.generateToken(teacherWithId.username)
+        // Save the teacher first
+        teacherRepository.save(teacher)
+        
+        // SQLite has issues with generated keys, so we always query back the saved teacher
+        val savedTeacher = teacherRepository.findByUsername(teacher.username)
+            .orElseThrow { RuntimeException("Failed to save teacher - user not found after save") }
+        
+        val token = jwtUtil.generateToken(savedTeacher.username)
 
-            return AuthResponse(
-                token = token,
-                teacherId = teacherWithId.id ?: 1L, // Default ID if still null
-                username = teacherWithId.username,
-                email = teacherWithId.email,
-                fullName = teacherWithId.fullName
-            )
-        } catch (e: Exception) {
-            // Handle SQLite specific issues
-            if (e.message?.contains("not implemented by SQLite") == true) {
-                // The user was likely saved, just retrieve it
-                val existingTeacher = teacherRepository.findByUsername(request.username)
-                    .orElseThrow { RuntimeException("Registration failed: ${e.message}") }
-                
-                val token = jwtUtil.generateToken(existingTeacher.username)
-                
-                return AuthResponse(
-                    token = token,
-                    teacherId = existingTeacher.id ?: 1L,
-                    username = existingTeacher.username,
-                    email = existingTeacher.email,
-                    fullName = existingTeacher.fullName
-                )
-            } else {
-                throw e
-            }
-        }
+        return AuthResponse(
+            token = token,
+            teacherId = savedTeacher.id ?: 1L,
+            username = savedTeacher.username,
+            email = savedTeacher.email,
+            fullName = savedTeacher.fullName
+        )
     }
 
     fun forgotPassword(request: ForgotPasswordRequest): String {
